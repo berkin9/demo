@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
+import com.example.demo.entity.Category;
 import com.example.demo.entity.Order;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.User;
+import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.UserRepository;
@@ -10,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -21,6 +25,7 @@ public class PanelController {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
     @GetMapping("/panel")
     public String panel(
@@ -43,7 +48,18 @@ public class PanelController {
         model.addAttribute("users", users);
         model.addAttribute("products", products);
         model.addAttribute("orders", orders);
+        model.addAttribute("product", new Product());
+        model.addAttribute("categories", categoryRepository.findAll());
 
         return "panel";
+    }
+
+    @PostMapping("/panel/addProduct")
+    public String addProduct(@ModelAttribute Product product, @RequestParam Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+        product.setCategory(category);
+        productRepository.save(product);
+        return "redirect:/panel";
     }
 }

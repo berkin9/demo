@@ -27,18 +27,18 @@
     <button type="submit">Filter</button>
 </form>
 
-<form th:action="@{/admin/products/add}" method="post">
-    <input type="text" name="name" placeholder="Product Name"/>
-    <input type="number" name="price" placeholder="Price"/>
+<form th:action="@{/panel/addProduct}" method="post" th:object="${product}">
+    <input type="text" th:field="*{name}" placeholder="Ürün Adı" required/>
+    <input type="number" th:field="*{price}" placeholder="Fiyat" required/>
 
-    <select name="categoryId">
-        <option th:each="cat : ${categories}"
-                th:value="${cat.id}"
-                th:text="${cat.name}"></option>
+    <select name="categoryId" required>
+        <option value="">Kategori Seç</option>
+        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
     </select>
 
-    <button type="submit">Add Product</button>
+    <button type="submit">Ürün Ekle</button>
 </form>
+
 
 
 <h2>Orders</h2>
@@ -50,6 +50,7 @@
         <th>Product</th>
         <th>Quantity</th>
         <th>Price</th>
+        <th>Category</th>
         <th>Order Date</th>
     </tr>
     </thead>
@@ -60,6 +61,7 @@
         <td th:text="${order.product.name}"></td>
         <td th:text="${order.quantity}"></td>
         <td th:text="${order.price}"></td>
+        <td th:text="${prod?.category?.name ?: 'Kategori Yok'}"></td>
         <td th:text="${order.orderDate}"></td>
     </tr>
     </tbody>
