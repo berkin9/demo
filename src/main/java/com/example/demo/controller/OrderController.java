@@ -6,49 +6,53 @@ import com.example.demo.entity.User;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
-@CrossOrigin(origins = "*")
 public class OrderController {
 
-    private final OrderRepository orderRepository;
-    private final UserRepository userRepository;
-    private final ProductRepository productRepository;
+    @Autowired
+    private OrderRepository orderRepository;
 
-    public OrderController(OrderRepository orderRepository, UserRepository userRepository, ProductRepository productRepository) {
-        this.orderRepository = orderRepository;
-        this.userRepository = userRepository;
-        this.productRepository = productRepository;
-    }
+    @Autowired
+    private UserRepository userRepository;
 
-    @GetMapping
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
-    }
+    @Autowired
+    private ProductRepository productRepository;
 
     @PostMapping
-    public Order createOrder(@RequestParam Long userId,
-                             @RequestParam Long productId,
-                             @RequestParam Integer quantity) {
-
-        User user = userRepository.findById(userId)
+    public Order createOrder(@RequestBody OrderRequest request) {
+        User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        Order order = Order.builder()
-                .user(user)
-                .product(product)
-                .quantity(quantity)
-                .orderDate(LocalDateTime.now())
-                .build();
-
+        Order order = new Order();
+        order.setUser(user);
+        order.setProduct(product);
+        order.setQuantity(request.getQuantity());
+        order.setOrderDate(request.getOrderDate());
         return orderRepository.save(order);
+    }
+
+    // DTO
+    public static class OrderRequest {
+        private Long userId;
+        private Long productId;
+        private Integer quantity;
+        private LocalDateTime orderDate = LocalDateTime.now();
+
+        // getters & setters
+        public Long getUserId() { return userId; }
+        public void setUserId(Long userId) { this.userId = userId; }
+        public Long getProductId() { return productId; }
+        public void setProductId(Long productId) { this.productId = productId; }
+        public Integer getQuantity() { return quantity; }
+        public void setQuantity(Integer quantity) { this.quantity = quantity; }
+        public LocalDateTime getOrderDate() { return orderDate; }
+        public void setOrderDate(LocalDateTime orderDate) { this.orderDate = orderDate; }
     }
 }
