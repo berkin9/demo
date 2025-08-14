@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.entity.Order;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.User;
+import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.OrderService;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
@@ -19,6 +21,7 @@ public class OrderController {
     private final OrderService orderService;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
 
     @PostMapping("/add")
     public Order addOrder(@RequestBody OrderRequest request) {
@@ -54,5 +57,16 @@ public class OrderController {
 
         public Integer getQuantity() { return quantity; }
         public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    }
+
+
+    @GetMapping
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    @GetMapping("/user/{userId}")
+    public List<Order> getOrdersByUser(@PathVariable Long userId) {
+        return orderRepository.findByUser_Id(userId);
     }
 }

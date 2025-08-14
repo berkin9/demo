@@ -22,6 +22,7 @@ public class ProductController {
         return productRepository.findAll();
     }
 
+    // Tek bir ürün getir
     @GetMapping("/{id}")
     public Product getProduct(@PathVariable Long id) {
         return productRepository.findById(id)
