@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Kategoriler</title>
+</head>
+<body>
+<h1>Kategoriler</h1>
+<a th:href="@{/admin/categories/add}">Yeni Kategori Ekle</a>
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>İsim</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="cat : ${categories}">
+        <td th:text="${cat.id}"></td>
+        <td th:text="${cat.name}"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

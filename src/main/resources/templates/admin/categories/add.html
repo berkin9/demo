@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Kategori Ekle</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1>Yeni Kategori Ekle</h1>
+
+<form th:action="@{/admin/categories/save}" th:object="${category}" method="post">
+    <div>
+        <label for="name">Kategori Adı:</label>
+        <input type="text" id="name" th:field="*{name}" placeholder="Kategori adı" required />
+    </div>
+
+    <div>
+        <button type="submit">Kaydet</button>
+        <a th:href="@{/admin/categories}">Geri</a>
+    </div>
+</form>
+</body>
+</html>
