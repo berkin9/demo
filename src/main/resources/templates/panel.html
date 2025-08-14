@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel</title>
+</head>
+<body>
+<h1>Admin Panel</h1>
+
+<form method="get" action="/panel">
+    <label for="user">Filter by User:</label>
+    <select name="userId" id="user">
+        <option value="">All</option>
+        <option th:each="user : ${users}"
+                th:value="${user.id}"
+                th:text="${user.name}"></option>
+    </select>
+
+    <label for="product">Filter by Product:</label>
+    <select name="productId" id="product">
+        <option value="">All</option>
+        <option th:each="product : ${products}"
+                th:value="${product.id}"
+                th:text="${product.name}"></option>
+    </select>
+
+    <button type="submit">Filter</button>
+</form>
+
+<h2>Orders</h2>
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Product</th>
+        <th>Quantity</th>
+        <th>Price</th>
+        <th>Order Date</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="order : ${orders}">
+        <td th:text="${order.id}"></td>
+        <td th:text="${order.user.name}"></td>
+        <td th:text="${order.product.name}"></td>
+        <td th:text="${order.quantity}"></td>
+        <td th:text="${order.price}"></td>
+        <td th:text="${order.orderDate}"></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
