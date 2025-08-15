@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.User;
+import com.example.demo.entity.Product;
 import com.example.demo.service.OrderService;
 import com.example.demo.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,10 @@ public class OrderPanelController {
         User user = (User) session.getAttribute("user");
         if (user == null) return "redirect:/login";
 
-        orderService.createOrder(user.getId(), productId, quantity);
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+        orderService.createOrder(user, product, quantity);
         return "redirect:/orders/panel";
     }
 }
