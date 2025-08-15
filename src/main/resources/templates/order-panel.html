@@ -55,7 +55,7 @@
 <div th:if="${cartProducts == null || #maps.isEmpty(cartProducts)}">
     <p>Your cart is empty.</p>
 </div>
-<form th:if="${cartProducts != null && !#maps.isEmpty(cartProducts)}" th:action="@{/orders/cart/checkout}" method="post">
+<form th:if="${cartProducts != null && !#maps.isEmpty(cartProducts)}" th:action="@{/orders/cart/checkout}" method="get">
     <button type="submit">Checkout</button>
 </form>
 

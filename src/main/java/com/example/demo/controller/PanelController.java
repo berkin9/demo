@@ -8,6 +8,7 @@ import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.UserRepository;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -37,8 +38,14 @@ public class PanelController {
     public String panel(
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) Long productId,
-            Model model
+            Model model,
+            HttpSession session
     ) {
+
+        Boolean isAdmin = (Boolean) session.getAttribute("admin");
+        if (isAdmin == null || !isAdmin) {
+            return "redirect:/login";
+        }
         List<User> users = userRepository.findAll();
         List<Product> products = productRepository.findAll();
         List<Order> orders;
@@ -63,7 +70,13 @@ public class PanelController {
     @PostMapping("/panel/addProduct")
     public String addProduct(@ModelAttribute Product product,
                              @RequestParam Long categoryId,
-                             @RequestParam("image") MultipartFile imageFile) throws IOException {
+                             @RequestParam("image") MultipartFile imageFile,
+                             HttpSession session) throws IOException {
+
+        Boolean isAdmin = (Boolean) session.getAttribute("admin");
+        if (isAdmin == null || !isAdmin) {
+            return "redirect:/login";
+        }
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
         product.setCategory(category);

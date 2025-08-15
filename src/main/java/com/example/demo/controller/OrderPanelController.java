@@ -82,8 +82,33 @@ public class OrderPanelController {
         return "redirect:/orders/panel";
     }
 
-    @PostMapping("/cart/checkout")
-    public String checkout(HttpSession session) {
+    @GetMapping("/cart/checkout")
+    public String checkoutPage(HttpSession session, Model model) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) return "redirect:/login";
+
+        Map<Long, Integer> cart = (Map<Long, Integer>) session.getAttribute("cart");
+        if (cart == null || cart.isEmpty()) {
+            return "redirect:/orders/panel";
+        }
+
+        Map<Product, Integer> cartProducts = new HashMap<>();
+        double total = 0;
+        for (Map.Entry<Long, Integer> entry : cart.entrySet()) {
+            Product product = productRepository.findById(entry.getKey())
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+            cartProducts.put(product, entry.getValue());
+            total += product.getPrice() * entry.getValue();
+        }
+
+        model.addAttribute("cartProducts", cartProducts);
+        model.addAttribute("cartTotal", total);
+
+        return "checkout";
+    }
+
+    @PostMapping("/cart/confirm")
+    public String confirmPayment(HttpSession session) {
         User user = (User) session.getAttribute("user");
         if (user == null) return "redirect:/login";
 
@@ -96,6 +121,7 @@ public class OrderPanelController {
             }
             session.removeAttribute("cart");
         }
+
         return "redirect:/orders/panel";
     }
 }

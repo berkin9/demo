@@ -16,6 +16,10 @@ public class LoginController {
 
     private final UserRepository userRepository;
 
+    // Admin bilgisi (sabit)
+    private final String ADMIN_EMAIL = "admin@example.com";
+    private final String ADMIN_PASSWORD = "admin123";
+
     @GetMapping
     public String loginForm() {
         return "login";
@@ -27,13 +31,20 @@ public class LoginController {
                               HttpSession session,
                               Model model) {
 
-        User user = userRepository.findByEmail(email).orElse(null);
-
-        if (user != null && user.getPassword().equals(password)) {
-            session.setAttribute("user", user);
-            return "redirect:/orders/panel";
+        // Admin kontrolü
+        if (email.equals(ADMIN_EMAIL) && password.equals(ADMIN_PASSWORD)) {
+            session.setAttribute("admin", true); // admin oturumu
+            return "redirect:/panel"; // admin paneline yönlendir
         }
 
+        // Normal kullanıcı kontrolü
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user != null && user.getPassword().equals(password)) {
+            session.setAttribute("user", user);
+            return "redirect:/orders/panel"; // kullanıcı paneline yönlendir
+        }
+
+        // Hatalı giriş
         model.addAttribute("error", "Invalid email or password");
         return "login";
     }

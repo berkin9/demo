@@ -28,8 +28,8 @@
 </form>
 
 <form action="/panel/addProduct" method="post" enctype="multipart/form-data">
-    <input type="text" name="name" placeholder="Ürün adı" required>
-    <input type="number" name="price" placeholder="Fiyat" required>
+    <input type="text" name="name" placeholder="product name" required>
+    <input type="number" name="price" placeholder="price" required>
     <select name="categoryId">
         <option th:each="cat : ${categories}"
                 th:value="${cat.id}"
@@ -37,7 +37,7 @@
         </option>
     </select>
     <input type="file" name="image">
-    <button type="submit">Ekle</button>
+    <button type="submit">Add</button>
 </form>
 
 
