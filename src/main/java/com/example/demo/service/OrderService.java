@@ -30,4 +30,8 @@ public class OrderService {
         order.setOrderDate(LocalDate.now());
         orderRepository.save(order);
     }
+
+    public Order saveOrder(Order order) {
+        return orderRepository.save(order);
+    }
 }

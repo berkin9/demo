@@ -61,7 +61,7 @@
         <td th:text="${order.product.name}"></td>
         <td th:text="${order.quantity}"></td>
         <td th:text="${order.price}"></td>
-        <td th:text="${prod?.category?.name ?: 'Kategori Yok'}"></td>
+        <td th:text="${order.product.category.name}"></td>
         <td th:text="${order.orderDate}"></td>
     </tr>
     </tbody>

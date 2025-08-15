@@ -24,6 +24,7 @@
     <tr>
         <th>ID</th>
         <th>Product</th>
+        <th>Category</th>
         <th>Quantity</th>
         <th>Price</th>
         <th>Order Date</th>
@@ -31,10 +32,21 @@
     <tr th:each="o : ${orders}">
         <td th:text="${o.id}"></td>
         <td th:text="${o.product.name}"></td>
+        <td th:text="${o.product.category.name}"></td>
         <td th:text="${o.quantity}"></td>
         <td th:text="${o.price}"></td>
         <td th:text="${o.orderDate}"></td>
     </tr>
 </table>
+<h3>Recommended Products</h3>
+<div th:if="${recommendedProducts != null}">
+    <ul>
+        <li th:each="p : ${recommendedProducts}">
+            <span th:text="${p.name}"></span> -
+            <span th:text="${p.price}"></span> ₺
+        </li>
+    </ul>
+</div>
+
 </body>
 </html>

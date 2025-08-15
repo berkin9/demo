@@ -25,7 +25,19 @@ public class OrderPanelController {
 
         model.addAttribute("user", user);
         model.addAttribute("products", productRepository.findAll());
-        model.addAttribute("orders", orderService.findByUserId(user.getId()));
+        var orders = orderService.findByUserId(user.getId());
+        model.addAttribute("orders", orders);
+
+        if (!orders.isEmpty()) {
+            var lastOrder = orders.get(orders.size() - 1);
+            var category = lastOrder.getProduct().getCategory();
+            var recommendedProducts = productRepository.findByCategoryIdAndIdNot(
+                    category.getId(),
+                    lastOrder.getProduct().getId()
+            );
+            model.addAttribute("recommendedProducts", recommendedProducts);
+        }
+
         return "order-panel";
     }
 
