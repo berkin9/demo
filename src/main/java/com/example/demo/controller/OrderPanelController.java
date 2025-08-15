@@ -91,7 +91,7 @@ public class OrderPanelController {
         if (cart == null || cart.isEmpty()) {
             return "redirect:/orders/panel";
         }
-
+        model.addAttribute("userAddress", user.getAddress());
         Map<Product, Integer> cartProducts = new HashMap<>();
         double total = 0;
         for (Map.Entry<Long, Integer> entry : cart.entrySet()) {
@@ -108,20 +108,26 @@ public class OrderPanelController {
     }
 
     @PostMapping("/cart/confirm")
-    public String confirmPayment(HttpSession session) {
+    public String confirmPayment(HttpSession session,
+                                 @RequestParam("address") String address) {
         User user = (User) session.getAttribute("user");
         if (user == null) return "redirect:/login";
+
+        if (address == null || address.trim().isEmpty()) {
+            address = user.getAddress();
+        }
 
         Map<Long, Integer> cart = (Map<Long, Integer>) session.getAttribute("cart");
         if (cart != null && !cart.isEmpty()) {
             for (Map.Entry<Long, Integer> entry : cart.entrySet()) {
                 Product product = productRepository.findById(entry.getKey())
                         .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-                orderService.createOrder(user, product, entry.getValue());
+                orderService.createOrder(user, product, entry.getValue(), address);
             }
             session.removeAttribute("cart");
         }
 
         return "redirect:/orders/panel";
     }
+
 }

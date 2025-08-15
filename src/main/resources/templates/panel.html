@@ -53,6 +53,7 @@
         <th>Quantity</th>
         <th>Price</th>
         <th>Category</th>
+        <th>Address</th>
         <th>Order Date</th>
     </tr>
     </thead>
@@ -64,6 +65,7 @@
         <td th:text="${order.quantity}"></td>
         <td th:text="${order.price}"></td>
         <td th:text="${order.product.category.name}"></td>
+        <td th:text="${order.address}"></td>
         <td th:text="${order.orderDate}"></td>
     </tr>
     </tbody>

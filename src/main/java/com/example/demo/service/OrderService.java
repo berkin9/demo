@@ -21,11 +21,12 @@ public class OrderService {
         return orderRepository.findByUser_Id(userId);
     }
 
-    public void createOrder(User user, Product product, Integer quantity) {
+    public void createOrder(User user, Product product, Integer quantity, String address) {
         Order order = new Order();
         order.setUser(user);
         order.setProduct(product);
         order.setQuantity(quantity);
+        order.setAddress(address);
         order.setPrice(product.getPrice() * quantity);
         order.setOrderDate(LocalDate.now());
         orderRepository.save(order);
