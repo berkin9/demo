@@ -2,52 +2,78 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Order Panel</title>
+    <style>
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+        }
+        .product-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .section-title {
+            margin-top: 30px;
+        }
+    </style>
 </head>
 <body>
 <h2>Welcome, <span th:text="${user.name}"></span></h2>
 <a th:href="@{/login/logout}">Logout</a>
 
-<h3>Add Product to Cart</h3>
-<form th:action="@{/orders/cart/add}" method="post">
-    <select name="productId" required>
-        <option value="" disabled selected>Select a product</option>
-        <option th:each="p : ${products}"
-                th:value="${p.id}"
-                th:text="${p.name}"></option>
-    </select>
-    <input type="number" name="quantity" value="1" min="1" required/>
-    <button type="submit">Add to Cart</button>
-</form>
+<h3 class="section-title">Add Product to Cart</h3>
+<div class="product-grid">
+    <div class="product-card" th:each="p : ${products}">
+        <img th:src="${p.imagePath}" alt="Ürün Resmi">
+        <h3 th:text="${p.name}"></h3>
+        <p th:text="${#numbers.formatDecimal(p.price, 1, 'POINT', 2, 'POINT')} + ' ₺'"></p>
+        <form th:action="@{/orders/cart/add}" method="post">
+            <input type="hidden" name="productId" th:value="${p.id}">
+            <input type="number" name="quantity" value="1" min="1" required>
+            <button type="submit">Add to Cart</button>
+        </form>
+    </div>
+</div>
 
-<h3>Your Cart</h3>
-<div th:if="${cartProducts != null && !#maps.isEmpty(cartProducts)}">
-    <table border="1">
-        <tr>
-            <th>Product</th>
-            <th>Quantity</th>
-            <th>Price</th>
-            <th>Total</th>
-        </tr>
-        <tr th:each="entry : ${cartProducts}">
-            <td th:text="${entry.key.name}"></td>
-            <td th:text="${entry.value}"></td>
-            <td th:text="${entry.key.price}"></td>
-            <td th:text="${entry.key.price * entry.value}"></td>
-        </tr>
-        <tr>
-            <td colspan="3">Total</td>
-            <td th:text="${cartTotal}"></td>
-        </tr>
-    </table>
-    <form th:action="@{/orders/cart/checkout}" method="post">
-        <button type="submit">Checkout</button>
-    </form>
+<h3 class="section-title">Your Cart</h3>
+<div th:if="${cartProducts != null && !#maps.isEmpty(cartProducts)}" class="product-grid">
+    <div class="product-card" th:each="entry : ${cartProducts}">
+        <img th:src="${entry.key.imagePath}" alt="Ürün Resmi">
+        <h3 th:text="${entry.key.name}"></h3>
+        <p>Quantity: <span th:text="${entry.value}"></span></p>
+        <p th:text="'Price: ' + ${#numbers.formatDecimal(entry.key.price, 1, 'POINT', 2, 'POINT')} + ' ₺'"></p>
+        <p th:text="'Total: ' + ${#numbers.formatDecimal(entry.key.price * entry.value, 1, 'POINT', 2, 'POINT')} + ' ₺'"></p>
+    </div>
 </div>
 <div th:if="${cartProducts == null || #maps.isEmpty(cartProducts)}">
     <p>Your cart is empty.</p>
 </div>
+<form th:if="${cartProducts != null && !#maps.isEmpty(cartProducts)}" th:action="@{/orders/cart/checkout}" method="post">
+    <button type="submit">Checkout</button>
+</form>
 
-<h3>Your Orders</h3>
+<h3 class="section-title">Recommended Products</h3>
+<div th:if="${recommendedProducts != null}" class="product-grid">
+    <div class="product-card" th:each="p : ${recommendedProducts}">
+        <img th:src="${p.imagePath}" alt="Ürün Resmi">
+        <h3 th:text="${p.name}"></h3>
+        <p th:text="${#numbers.formatDecimal(p.price, 1, 'POINT', 2, 'POINT')} + ' ₺'"></p>
+        <form th:action="@{/orders/cart/add}" method="post">
+            <input type="hidden" name="productId" th:value="${p.id}">
+            <input type="number" name="quantity" value="1" min="1" required>
+            <button type="submit">Add to Cart</button>
+        </form>
+    </div>
+</div>
+
+<h3 class="section-title">Your Orders</h3>
 <table border="1">
     <tr>
         <th>ID</th>
@@ -62,20 +88,10 @@
         <td th:text="${o.product.name}"></td>
         <td th:text="${o.product.category.name}"></td>
         <td th:text="${o.quantity}"></td>
-        <td th:text="${o.price}"></td>
+        <td th:text="${#numbers.formatDecimal(o.price, 1, 'POINT', 2, 'POINT')}"></td>
         <td th:text="${o.orderDate}"></td>
     </tr>
 </table>
-
-<h3>Recommended Products</h3>
-<div th:if="${recommendedProducts != null}">
-    <ul>
-        <li th:each="p : ${recommendedProducts}">
-            <span th:text="${p.name}"></span> -
-            <span th:text="${p.price}"></span> ₺
-        </li>
-    </ul>
-</div>
 
 </body>
 </html>

@@ -15,7 +15,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 @Controller
@@ -55,11 +61,25 @@ public class PanelController {
     }
 
     @PostMapping("/panel/addProduct")
-    public String addProduct(@ModelAttribute Product product, @RequestParam Long categoryId) {
+    public String addProduct(@ModelAttribute Product product,
+                             @RequestParam Long categoryId,
+                             @RequestParam("image") MultipartFile imageFile) throws IOException {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
         product.setCategory(category);
+
+        if (!imageFile.isEmpty()) {
+            String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
+            Path uploadPath = Paths.get("uploads");
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+            Files.copy(imageFile.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+            product.setImagePath("/uploads/" + fileName);
+        }
+
         productRepository.save(product);
         return "redirect:/panel";
     }
+
 }

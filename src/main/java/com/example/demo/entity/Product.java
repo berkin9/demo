@@ -18,7 +18,7 @@ public class Product {
 
     @Column(nullable = false)
     private String name;
-
+    private String imagePath;
     private String description;
 
     @Column(nullable = false)

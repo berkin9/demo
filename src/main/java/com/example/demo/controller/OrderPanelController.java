@@ -42,7 +42,6 @@ public class OrderPanelController {
             model.addAttribute("recommendedProducts", recommendedProducts);
         }
 
-        // Sepeti entity olarak model'e ekle
         Map<Long, Integer> cart = (Map<Long, Integer>) session.getAttribute("cart");
         if (cart == null) {
             cart = new HashMap<>();
@@ -55,7 +54,6 @@ public class OrderPanelController {
         }
         model.addAttribute("cartProducts", cartProducts);
 
-        // Sepet toplamını hesapla
         double cartTotal = cartProducts.entrySet()
                 .stream()
                 .mapToDouble(e -> e.getKey().getPrice() * e.getValue())

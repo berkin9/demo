@@ -27,17 +27,19 @@
     <button type="submit">Filter</button>
 </form>
 
-<form th:action="@{/panel/addProduct}" method="post" th:object="${product}">
-    <input type="text" th:field="*{name}" placeholder="Product Name" required/>
-    <input type="number" th:field="*{price}" placeholder="Price" required/>
-
-    <select name="categoryId" required>
-        <option value="">Choose a Category</option>
-        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+<form action="/panel/addProduct" method="post" enctype="multipart/form-data">
+    <input type="text" name="name" placeholder="Ürün adı" required>
+    <input type="number" name="price" placeholder="Fiyat" required>
+    <select name="categoryId">
+        <option th:each="cat : ${categories}"
+                th:value="${cat.id}"
+                th:text="${cat.name}">
+        </option>
     </select>
-
-    <button type="submit">Create Product</button>
+    <input type="file" name="image">
+    <button type="submit">Ekle</button>
 </form>
+
 
 
 
