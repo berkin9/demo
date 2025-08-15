@@ -10,6 +10,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Controller
 @RequestMapping("/orders")
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class OrderPanelController {
 
         model.addAttribute("user", user);
         model.addAttribute("products", productRepository.findAll());
+
         var orders = orderService.findByUserId(user.getId());
         model.addAttribute("orders", orders);
 
@@ -38,20 +42,62 @@ public class OrderPanelController {
             model.addAttribute("recommendedProducts", recommendedProducts);
         }
 
+        // Sepeti entity olarak model'e ekle
+        Map<Long, Integer> cart = (Map<Long, Integer>) session.getAttribute("cart");
+        if (cart == null) {
+            cart = new HashMap<>();
+        }
+
+        Map<Product, Integer> cartProducts = new HashMap<>();
+        for (Map.Entry<Long, Integer> entry : cart.entrySet()) {
+            productRepository.findById(entry.getKey())
+                    .ifPresent(p -> cartProducts.put(p, entry.getValue()));
+        }
+        model.addAttribute("cartProducts", cartProducts);
+
+        // Sepet toplamını hesapla
+        double cartTotal = cartProducts.entrySet()
+                .stream()
+                .mapToDouble(e -> e.getKey().getPrice() * e.getValue())
+                .sum();
+        model.addAttribute("cartTotal", cartTotal);
+
         return "order-panel";
     }
 
-    @PostMapping("/panel")
-    public String placeOrder(@RequestParam Long productId,
-                             @RequestParam Integer quantity,
-                             HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) return "redirect:/login";
+    @PostMapping("/cart/add")
+    public String addToCart(@RequestParam Long productId,
+                            @RequestParam Integer quantity,
+                            HttpSession session) {
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-        orderService.createOrder(user, product, quantity);
+        Map<Long, Integer> cart = (Map<Long, Integer>) session.getAttribute("cart");
+        if (cart == null) {
+            cart = new HashMap<>();
+        }
+
+        cart.put(productId, cart.getOrDefault(productId, 0) + quantity);
+        session.setAttribute("cart", cart);
+
+        return "redirect:/orders/panel";
+    }
+
+    @PostMapping("/cart/checkout")
+    public String checkout(HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) return "redirect:/login";
+
+        Map<Long, Integer> cart = (Map<Long, Integer>) session.getAttribute("cart");
+        if (cart != null && !cart.isEmpty()) {
+            for (Map.Entry<Long, Integer> entry : cart.entrySet()) {
+                Product product = productRepository.findById(entry.getKey())
+                        .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                orderService.createOrder(user, product, entry.getValue());
+            }
+            session.removeAttribute("cart");
+        }
         return "redirect:/orders/panel";
     }
 }

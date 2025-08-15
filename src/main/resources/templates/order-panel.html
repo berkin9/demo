@@ -7,8 +7,8 @@
 <h2>Welcome, <span th:text="${user.name}"></span></h2>
 <a th:href="@{/login/logout}">Logout</a>
 
-<h3>Create Order</h3>
-<form th:action="@{/orders/panel}" method="post">
+<h3>Add Product to Cart</h3>
+<form th:action="@{/orders/cart/add}" method="post">
     <select name="productId" required>
         <option value="" disabled selected>Select a product</option>
         <option th:each="p : ${products}"
@@ -16,8 +16,36 @@
                 th:text="${p.name}"></option>
     </select>
     <input type="number" name="quantity" value="1" min="1" required/>
-    <button type="submit">Place Order</button>
+    <button type="submit">Add to Cart</button>
 </form>
+
+<h3>Your Cart</h3>
+<div th:if="${cartProducts != null && !#maps.isEmpty(cartProducts)}">
+    <table border="1">
+        <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+        </tr>
+        <tr th:each="entry : ${cartProducts}">
+            <td th:text="${entry.key.name}"></td>
+            <td th:text="${entry.value}"></td>
+            <td th:text="${entry.key.price}"></td>
+            <td th:text="${entry.key.price * entry.value}"></td>
+        </tr>
+        <tr>
+            <td colspan="3">Total</td>
+            <td th:text="${cartTotal}"></td>
+        </tr>
+    </table>
+    <form th:action="@{/orders/cart/checkout}" method="post">
+        <button type="submit">Checkout</button>
+    </form>
+</div>
+<div th:if="${cartProducts == null || #maps.isEmpty(cartProducts)}">
+    <p>Your cart is empty.</p>
+</div>
 
 <h3>Your Orders</h3>
 <table border="1">
@@ -38,6 +66,7 @@
         <td th:text="${o.orderDate}"></td>
     </tr>
 </table>
+
 <h3>Recommended Products</h3>
 <div th:if="${recommendedProducts != null}">
     <ul>
