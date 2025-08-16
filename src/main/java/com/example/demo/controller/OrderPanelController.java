@@ -9,125 +9,97 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
-
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequestMapping("/orders")
-@RequiredArgsConstructor
 public class OrderPanelController {
 
-    private final OrderService orderService;
     private final ProductRepository productRepository;
 
+    public OrderPanelController(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
     @GetMapping("/panel")
-    public String orderPanel(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) return "redirect:/login";
+    public String orderPanel(Model model, HttpSession session) {
+        List<Product> products = productRepository.findAll();
 
-        model.addAttribute("user", user);
-        model.addAttribute("products", productRepository.findAll());
-
-        var orders = orderService.findByUserId(user.getId());
-        model.addAttribute("orders", orders);
-
-        if (!orders.isEmpty()) {
-            var lastOrder = orders.get(orders.size() - 1);
-            var category = lastOrder.getProduct().getCategory();
-            var recommendedProducts = productRepository.findByCategoryIdAndIdNot(
-                    category.getId(),
-                    lastOrder.getProduct().getId()
-            );
-            model.addAttribute("recommendedProducts", recommendedProducts);
-        }
-
+        // Sepet
         Map<Long, Integer> cart = (Map<Long, Integer>) session.getAttribute("cart");
         if (cart == null) {
             cart = new HashMap<>();
         }
 
-        Map<Product, Integer> cartProducts = new HashMap<>();
+        List<Map.Entry<Product, Integer>> cartProducts = new ArrayList<>();
+        double cartTotal = 0;
         for (Map.Entry<Long, Integer> entry : cart.entrySet()) {
-            productRepository.findById(entry.getKey())
-                    .ifPresent(p -> cartProducts.put(p, entry.getValue()));
+            productRepository.findById(entry.getKey()).ifPresent(product -> {
+                cartProducts.add(new AbstractMap.SimpleEntry<>(product, entry.getValue()));
+            });
+            cartTotal += productRepository.findById(entry.getKey())
+                    .map(p -> p.getPrice() * entry.getValue())
+                    .orElse(0.0);
         }
-        model.addAttribute("cartProducts", cartProducts);
 
-        double cartTotal = cartProducts.entrySet()
-                .stream()
-                .mapToDouble(e -> e.getKey().getPrice() * e.getValue())
-                .sum();
+        // Favoriler
+        Set<Long> favorites = (Set<Long>) session.getAttribute("favorites");
+        if (favorites == null) {
+            favorites = new HashSet<>();
+        }
+        List<Product> favoriteProducts = productRepository.findAllById(favorites);
+
+        model.addAttribute("products", products);
+        model.addAttribute("cartProducts", cartProducts);
+        model.addAttribute("favoriteProducts", favoriteProducts);
         model.addAttribute("cartTotal", cartTotal);
 
         return "order-panel";
     }
 
     @PostMapping("/cart/add")
-    public String addToCart(@RequestParam Long productId,
-                            @RequestParam Integer quantity,
-                            HttpSession session) {
-
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-
+    public String addToCart(@RequestParam Long productId, @RequestParam int quantity, HttpSession session) {
         Map<Long, Integer> cart = (Map<Long, Integer>) session.getAttribute("cart");
         if (cart == null) {
             cart = new HashMap<>();
         }
-
         cart.put(productId, cart.getOrDefault(productId, 0) + quantity);
         session.setAttribute("cart", cart);
-
         return "redirect:/orders/panel";
     }
 
-    @GetMapping("/cart/checkout")
-    public String checkoutPage(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) return "redirect:/login";
-
+    @PostMapping("/cart/remove")
+    public String removeFromCart(@RequestParam Long productId, HttpSession session) {
         Map<Long, Integer> cart = (Map<Long, Integer>) session.getAttribute("cart");
-        if (cart == null || cart.isEmpty()) {
-            return "redirect:/orders/panel";
+        if (cart != null) {
+            cart.remove(productId);
+            session.setAttribute("cart", cart);
         }
-        model.addAttribute("userAddress", user.getAddress());
-        Map<Product, Integer> cartProducts = new HashMap<>();
-        double total = 0;
-        for (Map.Entry<Long, Integer> entry : cart.entrySet()) {
-            Product product = productRepository.findById(entry.getKey())
-                    .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-            cartProducts.put(product, entry.getValue());
-            total += product.getPrice() * entry.getValue();
-        }
-
-        model.addAttribute("cartProducts", cartProducts);
-        model.addAttribute("cartTotal", total);
-
-        return "checkout";
-    }
-
-    @PostMapping("/cart/confirm")
-    public String confirmPayment(HttpSession session,
-                                 @RequestParam("address") String address) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) return "redirect:/login";
-
-        if (address == null || address.trim().isEmpty()) {
-            address = user.getAddress();
-        }
-
-        Map<Long, Integer> cart = (Map<Long, Integer>) session.getAttribute("cart");
-        if (cart != null && !cart.isEmpty()) {
-            for (Map.Entry<Long, Integer> entry : cart.entrySet()) {
-                Product product = productRepository.findById(entry.getKey())
-                        .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-                orderService.createOrder(user, product, entry.getValue(), address);
-            }
-            session.removeAttribute("cart");
-        }
-
         return "redirect:/orders/panel";
     }
 
+    @PostMapping("/favorites/toggle")
+    public String toggleFavorite(@RequestParam Long productId, HttpSession session) {
+        Set<Long> favorites = (Set<Long>) session.getAttribute("favorites");
+        if (favorites == null) {
+            favorites = new HashSet<>();
+        }
+        if (favorites.contains(productId)) {
+            favorites.remove(productId);
+        } else {
+            favorites.add(productId);
+        }
+        session.setAttribute("favorites", favorites);
+        return "redirect:/orders/panel";
+    }
+
+    @PostMapping("/favorites/remove")
+    public String removeFavorite(@RequestParam Long productId, HttpSession session) {
+        Set<Long> favorites = (Set<Long>) session.getAttribute("favorites");
+        if (favorites != null) {
+            favorites.remove(productId);
+            session.setAttribute("favorites", favorites);
+        }
+        return "redirect:/orders/panel";
+    }
 }

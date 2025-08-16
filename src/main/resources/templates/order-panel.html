@@ -3,95 +3,71 @@
 <head>
     <title>Order Panel</title>
     <style>
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        .product-card {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-            border-radius: 8px;
-        }
-        .product-card img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 5px;
-        }
-        .section-title {
-            margin-top: 30px;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { margin-top: 30px; }
+        ul { list-style: none; padding: 0; }
+        li { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+        button { margin-top: 5px; }
     </style>
 </head>
 <body>
-<h2>Welcome, <span th:text="${user.name}"></span></h2>
-<a th:href="@{/login/logout}">Logout</a>
+<h1>Order Panel</h1>
 
-<h3 class="section-title">Add Product to Cart</h3>
-<div class="product-grid">
-    <div class="product-card" th:each="p : ${products}">
-        <img th:src="${p.imagePath}" alt="Ürün Resmi">
-        <h3 th:text="${p.name}"></h3>
-        <p th:text="${#numbers.formatDecimal(p.price, 1, 'POINT', 2, 'POINT')} + ' ₺'"></p>
+<h2>All Products</h2>
+<ul>
+    <li th:each="p : ${products}">
+        <img th:src="${p.imagePath}" alt="Ürün Resmi" style="max-width:100px;"><br>
+        <strong th:text="${p.name}"></strong><br>
+        <span th:text="${#numbers.formatDecimal(p.price, 0, 'POINT', 2, 'POINT')} + ' ₺'"></span><br>
+
         <form th:action="@{/orders/cart/add}" method="post">
             <input type="hidden" name="productId" th:value="${p.id}">
             <input type="number" name="quantity" value="1" min="1" required>
             <button type="submit">Add to Cart</button>
         </form>
-    </div>
-</div>
 
-<h3 class="section-title">Your Cart</h3>
-<div th:if="${cartProducts != null && !#maps.isEmpty(cartProducts)}" class="product-grid">
-    <div class="product-card" th:each="entry : ${cartProducts}">
-        <img th:src="${entry.key.imagePath}" alt="Ürün Resmi">
-        <h3 th:text="${entry.key.name}"></h3>
-        <p>Quantity: <span th:text="${entry.value}"></span></p>
-        <p th:text="'Price: ' + ${#numbers.formatDecimal(entry.key.price, 1, 'POINT', 2, 'POINT')} + ' ₺'"></p>
-        <p th:text="'Total: ' + ${#numbers.formatDecimal(entry.key.price * entry.value, 1, 'POINT', 2, 'POINT')} + ' ₺'"></p>
-    </div>
-</div>
-<div th:if="${cartProducts == null || #maps.isEmpty(cartProducts)}">
-    <p>Your cart is empty.</p>
-</div>
-<form th:if="${cartProducts != null && !#maps.isEmpty(cartProducts)}" th:action="@{/orders/cart/checkout}" method="get">
-    <button type="submit">Checkout</button>
-</form>
-
-<h3 class="section-title">Recommended Products</h3>
-<div th:if="${recommendedProducts != null}" class="product-grid">
-    <div class="product-card" th:each="p : ${recommendedProducts}">
-        <img th:src="${p.imagePath}" alt="Ürün Resmi">
-        <h3 th:text="${p.name}"></h3>
-        <p th:text="${#numbers.formatDecimal(p.price, 1, 'POINT', 2, 'POINT')} + ' ₺'"></p>
-        <form th:action="@{/orders/cart/add}" method="post">
+        <form th:action="@{/orders/favorites/toggle}" method="post">
             <input type="hidden" name="productId" th:value="${p.id}">
+            <button type="submit" th:text="${favoriteProducts.contains(p)} ? '★ Remove Favorite' : '☆ Add Favorite'"></button>
+        </form>
+    </li>
+</ul>
+
+<h2>Shopping Cart</h2>
+<ul>
+    <li th:each="entry : ${cartProducts}">
+        <img th:src="${entry.key.imagePath}" alt="Ürün Resmi" style="max-width:100px;"><br>
+        <strong th:text="${entry.key.name}"></strong><br>
+        Quantity: <span th:text="${entry.value}"></span><br>
+        Price: <span th:text="${#numbers.formatDecimal(entry.key.price, 0, 'POINT', 2, 'POINT')} + ' ₺'"></span><br>
+        Total: <span th:text="${#numbers.formatDecimal(entry.key.price * entry.value, 0, 'POINT', 2, 'POINT')} + ' ₺'"></span><br>
+
+        <form th:action="@{/orders/cart/remove}" method="post">
+            <input type="hidden" name="productId" th:value="${entry.key.id}">
+            <button type="submit">Remove</button>
+        </form>
+    </li>
+</ul>
+<h3>Total Cart Price: <span th:text="${#numbers.formatDecimal(cartTotal, 0, 'POINT', 2, 'POINT')} + ' ₺'"></span></h3>
+
+<h2>Favorite Products</h2>
+<ul>
+    <li th:each="fp : ${favoriteProducts}">
+        <img th:src="${fp.imagePath}" alt="Ürün Resmi" style="max-width:100px;"><br>
+        <strong th:text="${fp.name}"></strong><br>
+        <span th:text="${#numbers.formatDecimal(fp.price, 0, 'POINT', 2, 'POINT')} + ' ₺'"></span><br>
+
+        <form th:action="@{/orders/cart/add}" method="post">
+            <input type="hidden" name="productId" th:value="${fp.id}">
             <input type="number" name="quantity" value="1" min="1" required>
             <button type="submit">Add to Cart</button>
         </form>
-    </div>
-</div>
 
-<h3 class="section-title">Your Orders</h3>
-<table border="1">
-    <tr>
-        <th>ID</th>
-        <th>Product</th>
-        <th>Category</th>
-        <th>Quantity</th>
-        <th>Price</th>
-        <th>Order Date</th>
-    </tr>
-    <tr th:each="o : ${orders}">
-        <td th:text="${o.id}"></td>
-        <td th:text="${o.product.name}"></td>
-        <td th:text="${o.product.category.name}"></td>
-        <td th:text="${o.quantity}"></td>
-        <td th:text="${#numbers.formatDecimal(o.price, 1, 'POINT', 2, 'POINT')}"></td>
-        <td th:text="${o.orderDate}"></td>
-    </tr>
-</table>
-
+        <form th:action="@{/orders/favorites/remove}" method="post">
+            <input type="hidden" name="productId" th:value="${fp.id}">
+            <button type="submit">Remove from Favorites</button>
+        </form>
+    </li>
+</ul>
 </body>
 </html>
