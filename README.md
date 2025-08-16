@@ -13,6 +13,7 @@ This project is a Spring Boot & Thymeleaf-based e-commerce application. Users ca
 - User-specific order panel
 - Order table shows product name, category, quantity, price, and order date
 - Recommended products (other products in the same category)
+- Add products to favorite products section
 
 ### Admin Panel
 - Add, list, and edit products
@@ -20,6 +21,7 @@ This project is a Spring Boot & Thymeleaf-based e-commerce application. Users ca
 - Select category when adding products
 - Filter products by category
 - Admin panel URLs: `/admin/products` and `/admin/categories`
+- admin specified access for admin panel
 
 ### Database
 - PostgreSQL as the database
